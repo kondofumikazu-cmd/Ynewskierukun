@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Y News きえるくん</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup">
+    <section class="filters" aria-labelledby="filtersTitle">
+      <div class="filters-head">
+        <h1 id="filtersTitle">キーワード非表示</h1>
+        <span id="kwCount" class="count" aria-live="polite">0 個</span>
+      </div>
+
+      <p id="filtersDescription" class="desc">登録したキーワードが見出しに含まれるニュース一覧行を非表示にして削除します。</p>
+
+      <form id="kwForm" class="kw-form" autocomplete="off">
+        <input
+          id="kwInput"
+          class="kw-input"
+          type="text"
+          maxlength="40"
+          placeholder="キーワードを入力"
+          enterkeyhint="done"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          aria-label="追加するキーワード"
+        >
+        <button id="kwAdd" class="kw-add" type="submit">追加</button>
+      </form>
+
+      <p id="kwStatus" class="status" role="status" hidden></p>
+      <ul id="kwChips" class="kw-chips" aria-label="登録済みキーワード"></ul>
+      <p id="kwEmpty" class="empty">まだキーワードはありません。</p>
+
+      <div id="kwActions" class="kw-actions" role="group" aria-label="キーワード管理">
+        <input id="kwFile" type="file" accept=".txt,text/plain" hidden>
+        <button id="kwImport" type="button">読み込み</button>
+        <button id="kwExport" type="button" disabled>書き出し</button>
+        <button id="kwReset" type="button" disabled>リセット</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="keyword_utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "extension_name": {
+    "message": "Y News Eraser"
+  },
+  "extension_description": {
+    "message": "A lightweight Safari extension that hides fixed areas and keyword-matched news rows on a supported news site."
+  },
+  "popup_title": {
+    "message": "Keyword Hiding"
+  },
+  "keyword_count": {
+    "message": "$COUNT$ items",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_description": {
+    "message": "Hide news list rows when registered keywords appear in headlines."
+  },
+  "keyword_input_placeholder": {
+    "message": "Enter keyword"
+  },
+  "keyword_input_aria": {
+    "message": "Keyword to add"
+  },
+  "add_button": {
+    "message": "Add"
+  },
+  "saved_keywords_aria": {
+    "message": "Saved keywords"
+  },
+  "empty_keywords": {
+    "message": "No keywords yet."
+  },
+  "keyword_actions_aria": {
+    "message": "Keyword management"
+  },
+  "import_button": {
+    "message": "Import"
+  },
+  "export_button": {
+    "message": "Export"
+  },
+  "reset_button": {
+    "message": "Reset"
+  },
+  "remove_keyword_aria": {
+    "message": "Remove \"$KEYWORD$\"",
+    "placeholders": {
+      "keyword": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_save_failed": {
+    "message": "Failed to save."
+  },
+  "error_load_failed": {
+    "message": "Could not load saved data."
+  },
+  "error_enter_keyword": {
+    "message": "Enter a keyword."
+  },
+  "error_duplicate_keyword": {
+    "message": "This keyword is already registered."
+  },
+  "status_keyword_saved": {
+    "message": "Keyword saved."
+  },
+  "status_keyword_removed": {
+    "message": "Keyword removed."
+  },
+  "status_keywords_reset": {
+    "message": "All keywords reset."
+  },
+  "export_header_name": {
+    "message": "# Y News Eraser keyword list"
+  },
+  "export_header_help": {
+    "message": "# One keyword per line. Blank lines and lines starting with # are ignored."
+  },
+  "share_text": {
+    "message": "Exporting saved keywords."
+  },
+  "status_shared": {
+    "message": "Shared $COUNT$ items as a txt file.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_share_cancelled": {
+    "message": "Sharing was canceled."
+  },
+  "status_downloaded": {
+    "message": "Saved $COUNT$ items as a txt file.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_copied": {
+    "message": "Copied $COUNT$ items. If sharing is unavailable, paste the text into a text file and save it.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_export_failed": {
+    "message": "Failed to export."
+  },
+  "error_no_importable_keywords": {
+    "message": "No importable keywords were found."
+  },
+  "error_no_keywords_found": {
+    "message": "No keywords found."
+  },
+  "status_imported": {
+    "message": "Imported $COUNT$ items.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_file_too_large": {
+    "message": "The file is too large."
+  },
+  "error_file_read_failed": {
+    "message": "Could not read the file."
+  }
+}

@@ -1,0 +1,193 @@
+:root {
+  color-scheme: light dark;
+  font: 13px -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: Canvas;
+  color: CanvasText;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.popup {
+  padding: 14px;
+}
+
+.filters {
+  display: grid;
+  gap: 12px;
+}
+
+.filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.count {
+  color: #5f6b7a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.desc,
+.empty,
+.status {
+  margin: 0;
+  color: #5f6b7a;
+  line-height: 1.5;
+}
+
+.status {
+  color: #b42318;
+}
+
+.status[data-tone="ok"] {
+  color: #0f6b3f;
+}
+
+.status[data-tone="info"] {
+  color: #5f6b7a;
+}
+
+.kw-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.kw-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #c9d1dc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: Canvas;
+  color: CanvasText;
+}
+
+.kw-input:focus {
+  border-color: #2864d8;
+  outline: 2px solid color-mix(in srgb, #2864d8 30%, transparent);
+}
+
+button {
+  border: 1px solid #c9d1dc;
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: #f6f8fb;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #eef3fb;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.kw-add {
+  background: #2864d8;
+  border-color: #2864d8;
+  color: #fff;
+  font-weight: 700;
+}
+
+.kw-add:hover:not(:disabled) {
+  background: #1f55bf;
+}
+
+.kw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kw-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border: 1px solid #d4dbe6;
+  border-radius: 999px;
+  background: #f6f8fb;
+  overflow: hidden;
+}
+
+.kw-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  padding: 5px 8px 5px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kw-chip-del {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-left: 1px solid #d4dbe6;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: #667085;
+}
+
+.kw-chip-del::before {
+  content: "×";
+  font-size: 16px;
+  line-height: 1;
+}
+
+.kw-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .count,
+  .desc,
+  .empty,
+  .status[data-tone="info"] {
+    color: #a8b3c2;
+  }
+
+  .kw-input,
+  button,
+  .kw-chip {
+    border-color: #3c4656;
+  }
+
+  button,
+  .kw-chip {
+    background: #1f2430;
+    color: #f3f4f6;
+  }
+
+  button:hover:not(:disabled) {
+    background: #283044;
+  }
+}

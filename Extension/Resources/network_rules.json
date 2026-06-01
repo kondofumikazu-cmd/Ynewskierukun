@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "regexFilter": "^https?://news\\.yahoo\\.co\\.jp/.*(uamods\\-topics|articleCommentModule|uamods\\-also_read|uamods\\-recommend|yjnSub|newsFeed_more|tab\\-panel\\-comment\\-timeline|topicsList|comModule)",
+      "resourceTypes": [
+        "sub_frame",
+        "stylesheet",
+        "script",
+        "image",
+        "font",
+        "xmlhttprequest",
+        "ping",
+        "media",
+        "websocket",
+        "other"
+      ]
+    }
+  }
+]

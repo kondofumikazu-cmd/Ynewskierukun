@@ -1,0 +1,137 @@
+{
+  "extension_name": {
+    "message": "Y News きえるくん"
+  },
+  "extension_description": {
+    "message": "対応ニュースサイトの指定エリアとキーワード一致ニュースをSafariで非表示にする軽量な機能拡張です。"
+  },
+  "popup_title": {
+    "message": "キーワード非表示"
+  },
+  "keyword_count": {
+    "message": "$COUNT$ 個",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_description": {
+    "message": "登録したキーワードが見出しに含まれるニュース一覧行を非表示にして削除します。"
+  },
+  "keyword_input_placeholder": {
+    "message": "キーワードを入力"
+  },
+  "keyword_input_aria": {
+    "message": "追加するキーワード"
+  },
+  "add_button": {
+    "message": "追加"
+  },
+  "saved_keywords_aria": {
+    "message": "登録済みキーワード"
+  },
+  "empty_keywords": {
+    "message": "まだキーワードはありません。"
+  },
+  "keyword_actions_aria": {
+    "message": "キーワード管理"
+  },
+  "import_button": {
+    "message": "読み込み"
+  },
+  "export_button": {
+    "message": "書き出し"
+  },
+  "reset_button": {
+    "message": "リセット"
+  },
+  "remove_keyword_aria": {
+    "message": "「$KEYWORD$」を削除",
+    "placeholders": {
+      "keyword": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_save_failed": {
+    "message": "保存に失敗しました。"
+  },
+  "error_load_failed": {
+    "message": "保存データを読み込めませんでした。"
+  },
+  "error_enter_keyword": {
+    "message": "キーワードを入力してください。"
+  },
+  "error_duplicate_keyword": {
+    "message": "同じキーワードは既に登録されています。"
+  },
+  "status_keyword_saved": {
+    "message": "キーワードを保存しました。"
+  },
+  "status_keyword_removed": {
+    "message": "キーワードを削除しました。"
+  },
+  "status_keywords_reset": {
+    "message": "キーワードをすべて削除しました。"
+  },
+  "export_header_name": {
+    "message": "# Y News きえるくん キーワードリスト"
+  },
+  "export_header_help": {
+    "message": "# 1 行 1 キーワード。# で始まる行と空行は無視します。"
+  },
+  "share_text": {
+    "message": "保存済みキーワードを書き出します。"
+  },
+  "status_shared": {
+    "message": "$COUNT$ 件をtxtファイルとして共有しました。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_share_cancelled": {
+    "message": "共有をキャンセルしました。"
+  },
+  "status_downloaded": {
+    "message": "$COUNT$ 件をtxtファイルとして保存しました。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "status_copied": {
+    "message": "$COUNT$ 件をコピーしました。共有が使えない環境ではテキストファイルへ貼り付けて保存できます。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_export_failed": {
+    "message": "書き出しに失敗しました。"
+  },
+  "error_no_importable_keywords": {
+    "message": "追加できるキーワードがありませんでした。"
+  },
+  "error_no_keywords_found": {
+    "message": "キーワードが見つかりませんでした。"
+  },
+  "status_imported": {
+    "message": "$COUNT$ 件を読み込みました。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "error_file_too_large": {
+    "message": "ファイルが大きすぎます。"
+  },
+  "error_file_read_failed": {
+    "message": "ファイルを読み込めませんでした。"
+  }
+}
