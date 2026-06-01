@@ -26,6 +26,9 @@
     const lifecycle = (typeof globalThis !== "undefined" && globalThis.YNCHContentLifecycle)
         ? globalThis.YNCHContentLifecycle
         : null;
+    const recoveryBudgetApi = (typeof globalThis !== "undefined" && globalThis.YNCHCommentRecoveryBudget)
+        ? globalThis.YNCHCommentRecoveryBudget
+        : null;
 
     function configArray(name) {
         const value = ruleConfig[name];
@@ -59,6 +62,8 @@
     const COMMENT_TAB_RECOVERY_COOLDOWN_MS = 8000;
     const COMMENT_TAB_OBSERVER_REFRESH_DELAY_MS = 300;
     const COMMENT_TAB_RECOVERY_STORAGE_PREFIX = "ynchBlankTabRecovery:";
+    const COMMENT_TAB_RECOVERY_COUNT_KEY = COMMENT_TAB_RECOVERY_STORAGE_PREFIX + "count";
+    const COMMENT_TAB_MAX_RECOVERIES_PER_TAB = 1;
     const COMMENT_TAB_MUTATION_ROOT_SELECTOR = "#swipeFrame,[role='tablist'],#Topics";
     const COMMENT_TAB_MUTATION_NODE_SELECTOR = "#swipeFrame,[role='tablist'],[role='tab'],#Topics,[id^='tab-panel-'],#tab-panel-comment-timeline";
     const NEWS_TAB_SCAN_SELECTOR = "[role='tab'],[role='tablist'] a,[role='tablist'] button,[role='tablist'] li";
@@ -144,6 +149,7 @@
     let keywordsLoaded = false;
     let keywordGeneration = 0;
     let keywordMatcher = createKeywordMatcher([]);
+    const commentRecoveryBudget = createCommentRecoveryBudget();
 
     function scheduleTimer(callback, delay) {
         if (lifecycle && typeof lifecycle.setTimeout === "function") {
@@ -188,6 +194,26 @@
                     if (keyword && text.includes(keyword)) return true;
                 }
                 return false;
+            },
+        };
+    }
+
+    function createCommentRecoveryBudget() {
+        if (recoveryBudgetApi && typeof recoveryBudgetApi.create === "function") {
+            return recoveryBudgetApi.create({
+                storage: typeof sessionStorage !== "undefined" ? sessionStorage : null,
+                key: COMMENT_TAB_RECOVERY_COUNT_KEY,
+                max: COMMENT_TAB_MAX_RECOVERIES_PER_TAB,
+            });
+        }
+        return {
+            consume() {
+                try {
+                    const current = Number(sessionStorage.getItem(COMMENT_TAB_RECOVERY_COUNT_KEY) || 0);
+                    if (current >= COMMENT_TAB_MAX_RECOVERIES_PER_TAB) return false;
+                    sessionStorage.setItem(COMMENT_TAB_RECOVERY_COUNT_KEY, String(current + 1));
+                } catch (_) {}
+                return true;
             },
         };
     }
@@ -1300,6 +1326,7 @@
 
         const href = hrefOverride || commentRecoveryHref;
         commentRecoveryHref = "";
+        if (!commentRecoveryBudget.consume()) return;
         try {
             if (href && href !== location.href) {
                 location.assign(href);

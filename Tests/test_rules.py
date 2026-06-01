@@ -51,6 +51,7 @@ class RulesTests(unittest.TestCase):
             "keyword_utils.js",
             "keyword_matcher.js",
             "content_lifecycle.js",
+            "comment_recovery_budget.js",
             "content.js",
         ]
         for item in expected:

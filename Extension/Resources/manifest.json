@@ -39,7 +39,7 @@
         "https://news.yahoo.co.jp/*"
       ],
       "css": ["static_rules.css", "content.css"],
-      "js": ["generated_config.js", "keyword_utils.js", "keyword_matcher.js", "content_lifecycle.js", "content.js"],
+      "js": ["generated_config.js", "keyword_utils.js", "keyword_matcher.js", "content_lifecycle.js", "comment_recovery_budget.js", "content.js"],
       "run_at": "document_start",
       "all_frames": false
     },

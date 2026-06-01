@@ -178,110 +178,178 @@ function loadScript(context, relativePath) {
   vm.runInContext(source, context, { filename: relativePath });
 }
 
-const document = new Document();
-const feed = document.body.appendChild(new Element("section", { id: "newsFeed" }));
-const alphaCard = feed.appendChild(new Element("article", { class: "card" }));
-alphaCard.appendChild(new Element("a", { class: "headline", href: "/articles/1" }, "Alpha topic"));
-const betaCard = feed.appendChild(new Element("article", { class: "card" }));
-betaCard.appendChild(new Element("a", { class: "headline", href: "/articles/2" }, "Beta topic"));
+function readFixture(name) {
+  return fs.readFileSync(path.join(root, "Tests/fixtures", name), "utf8");
+}
 
-const storageListeners = [];
-const windowListeners = Object.create(null);
-const scheduledTimers = [];
-const observers = [];
-let storedKeywords = [{ d: "Alpha", n: "alpha" }];
-const context = {
-  console,
-  document,
-  location: { hostname: "www.yahoo.co.jp", href: "https://www.yahoo.co.jp/" },
-  navigator: { platform: "MacIntel", userAgent: "Macintosh", maxTouchPoints: 0 },
-  history: {
-    pushState() {},
-    replaceState() {}
-  },
-  addEventListener(type, callback) {
-    if (!windowListeners[type]) windowListeners[type] = [];
-    windowListeners[type].push(callback);
-  },
-  setTimeout(callback) {
-    const timer = { callback, cleared: false };
-    scheduledTimers.push(timer);
-    return timer;
-  },
-  clearTimeout(timer) {
-    if (timer) timer.cleared = true;
-  },
-  browser: {
-    runtime: {},
-    storage: {
-      local: {
-        get(query, callback) {
-          const key = Object.keys(query)[0];
-          callback({ [key]: storedKeywords });
-        }
+function parseAttributes(raw) {
+  const out = {};
+  const pattern = /([a-zA-Z0-9_-]+)="([^"]*)"/g;
+  let match = null;
+  while ((match = pattern.exec(raw))) out[match[1]] = match[2];
+  return out;
+}
+
+function buildFixtureDocument(html) {
+  const document = new Document();
+  const sectionMatch = html.match(/<section\s+([^>]*)>([\s\S]*?)<\/section>/i);
+  assert(sectionMatch, "fixture should contain a section");
+  const section = document.body.appendChild(new Element("section", parseAttributes(sectionMatch[1])));
+  const cards = [];
+  const articlePattern = /<article\s+([^>]*)>\s*<a\s+([^>]*)>([^<]*)<\/a>\s*<\/article>/gi;
+  let match = null;
+  while ((match = articlePattern.exec(sectionMatch[2]))) {
+    const card = section.appendChild(new Element("article", parseAttributes(match[1])));
+    const link = card.appendChild(new Element("a", parseAttributes(match[2]), match[3]));
+    cards.push({ card, link });
+  }
+  assert(cards.length > 0, "fixture should contain cards");
+  return { document, cards };
+}
+
+function runScenario(options) {
+  const fixture = buildFixtureDocument(readFixture(options.fixture));
+  const document = fixture.document;
+  const storageListeners = [];
+  const windowListeners = Object.create(null);
+  const scheduledTimers = [];
+  const observers = [];
+  let storedKeywords = options.initialKeywords;
+  const storage = new Map();
+  const context = {
+    console,
+    document,
+    sessionStorage: {
+      getItem(key) {
+        return storage.has(key) ? storage.get(key) : null;
       },
-      onChanged: {
-        addListener(callback) {
-          storageListeners.push(callback);
+      setItem(key, value) {
+        storage.set(key, String(value));
+      }
+    },
+    location: { hostname: "www.yahoo.co.jp", href: "https://www.yahoo.co.jp/" },
+    navigator: { platform: "MacIntel", userAgent: "Macintosh", maxTouchPoints: 0 },
+    history: {
+      pushState() {},
+      replaceState() {}
+    },
+    addEventListener(type, callback) {
+      if (!windowListeners[type]) windowListeners[type] = [];
+      windowListeners[type].push(callback);
+    },
+    setTimeout(callback) {
+      const timer = { callback, cleared: false };
+      scheduledTimers.push(timer);
+      return timer;
+    },
+    clearTimeout(timer) {
+      if (timer) timer.cleared = true;
+    },
+    browser: {
+      runtime: {},
+      storage: {
+        local: {
+          get(query, callback) {
+            const key = Object.keys(query)[0];
+            callback({ [key]: storedKeywords });
+          }
+        },
+        onChanged: {
+          addListener(callback) {
+            storageListeners.push(callback);
+          }
         }
       }
+    },
+    MutationObserver: class {
+      constructor(callback) {
+        this.callback = callback;
+        this.disconnected = false;
+        observers.push(this);
+      }
+      observe(target, observerOptions) {
+        this.target = target;
+        this.options = observerOptions;
+      }
+      disconnect() {
+        this.disconnected = true;
+      }
     }
-  },
-  MutationObserver: class {
-    constructor(callback) {
-      this.callback = callback;
-      this.disconnected = false;
-      observers.push(this);
-    }
-    observe(target, options) {
-      this.target = target;
-      this.options = options;
-    }
-    disconnect() {
-      this.disconnected = true;
-    }
+  };
+  context.globalThis = context;
+  context.window = context;
+  context.YNCH_CONFIG = options.config;
+
+  vm.createContext(context);
+  loadScript(context, "Extension/Resources/keyword_utils.js");
+  loadScript(context, "Extension/Resources/keyword_matcher.js");
+  loadScript(context, "Extension/Resources/content_lifecycle.js");
+  loadScript(context, "Extension/Resources/comment_recovery_budget.js");
+  loadScript(context, "Extension/Resources/content.js");
+
+  for (const item of fixture.cards) {
+    const expected = item.card.getAttribute("data-expected-hidden") === "true";
+    assert.strictEqual(item.card.getAttribute("data-keyword-hidden") === "true", expected, options.fixture);
+    assert.strictEqual(item.card.getAttribute("data-keyword-checked"), "true", options.fixture);
   }
-};
-context.globalThis = context;
-context.window = context;
 
-context.YNCH_CONFIG = {
-  supportedHosts: ["www.yahoo.co.jp"],
-  keywordScopes: ["#newsFeed"],
-  keywordCards: [".card"],
-  keywordArticleLinks: ["a"],
-  keywordHeadlines: [".headline"],
-  keywordPendingScopes: ["#newsFeed"]
-};
+  if (options.updatedKeywords) {
+    storedKeywords = options.updatedKeywords;
+    for (const listener of storageListeners) {
+      listener({ filterKeywords: { newValue: storedKeywords } }, "local");
+    }
+    assert.strictEqual(fixture.cards[0].card.getAttribute("data-keyword-hidden"), null);
+    assert.strictEqual(fixture.cards[1].card.getAttribute("data-keyword-hidden"), "true");
+  }
 
-vm.createContext(context);
-loadScript(context, "Extension/Resources/keyword_utils.js");
-loadScript(context, "Extension/Resources/keyword_matcher.js");
-loadScript(context, "Extension/Resources/content_lifecycle.js");
-loadScript(context, "Extension/Resources/content.js");
-
-assert.strictEqual(alphaCard.getAttribute("data-keyword-hidden"), "true");
-assert.strictEqual(alphaCard.classList.contains("ynch-keyword-hidden"), true);
-assert.strictEqual(betaCard.getAttribute("data-keyword-hidden"), null);
-assert.strictEqual(betaCard.getAttribute("data-keyword-checked"), "true");
-
-storedKeywords = [{ d: "Beta", n: "beta" }];
-for (const listener of storageListeners) {
-  listener({ filterKeywords: { newValue: storedKeywords } }, "local");
+  assert.ok(scheduledTimers.length > 0);
+  assert.ok(observers.length > 0);
+  for (const listener of windowListeners.pagehide || []) {
+    listener({ persisted: false });
+  }
+  assert.strictEqual(context.YNCHContentLifecycle.isDisposed(), true);
+  assert.strictEqual(scheduledTimers.every((timer) => timer.cleared), true);
+  assert.strictEqual(observers.every((observer) => observer.disconnected), true);
 }
 
-assert.strictEqual(alphaCard.getAttribute("data-keyword-hidden"), null);
-assert.strictEqual(alphaCard.classList.contains("ynch-keyword-hidden"), false);
-assert.strictEqual(betaCard.getAttribute("data-keyword-hidden"), "true");
-assert.strictEqual(betaCard.classList.contains("ynch-keyword-hidden"), true);
+runScenario({
+  fixture: "yahoo_top.html",
+  initialKeywords: [{ d: "Alpha", n: "alpha" }],
+  updatedKeywords: [{ d: "Beta", n: "beta" }],
+  config: {
+    supportedHosts: ["www.yahoo.co.jp"],
+    keywordScopes: ["#newsFeed"],
+    keywordCards: [".news-card"],
+    keywordArticleLinks: ["a"],
+    keywordHeadlines: [".news-title"],
+    keywordPendingScopes: ["#newsFeed"]
+  }
+});
 
-assert.ok(scheduledTimers.length > 0);
-assert.ok(observers.length > 0);
-for (const listener of windowListeners.pagehide || []) {
-  listener({ persisted: false });
-}
-assert.strictEqual(context.YNCHContentLifecycle.isDisposed(), true);
-assert.strictEqual(scheduledTimers.every((timer) => timer.cleared), true);
-assert.strictEqual(observers.every((observer) => observer.disconnected), true);
+runScenario({
+  fixture: "yahoo_article.html",
+  initialKeywords: [{ d: "Gamma", n: "gamma" }],
+  config: {
+    supportedHosts: ["www.yahoo.co.jp"],
+    keywordScopes: ["#uamods-recommend"],
+    keywordCards: [".related-card"],
+    keywordArticleLinks: ["a"],
+    keywordHeadlines: [".related-title"],
+    keywordPendingScopes: ["#uamods-recommend"]
+  }
+});
+
+runScenario({
+  fixture: "yahoo_mobile.html",
+  initialKeywords: [{ d: "Mobile Alpha", n: "mobile alpha" }],
+  config: {
+    supportedHosts: ["www.yahoo.co.jp"],
+    keywordScopes: ["#Topics"],
+    keywordCards: [".topic-card"],
+    keywordArticleLinks: ["a"],
+    keywordHeadlines: [".topic-title"],
+    keywordPendingScopes: ["#Topics"]
+  }
+});
 
 console.log("content_dom.test.js passed");

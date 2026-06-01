@@ -67,6 +67,7 @@ python3 Tools/generate_rules.py --check
 python3 Tools/check_versions.py
 python3 -m unittest discover -s Tests -p 'test_*.py'
 node Tests/keyword_utils.test.js
+node Tests/comment_recovery_budget.test.js
 node Tests/content_dom.test.js
 ```
 
