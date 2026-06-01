@@ -1,0 +1,187 @@
+require "fileutils"
+require "shellwords"
+
+default_platform(:ios)
+
+APP_IDENTIFIER = "com.deafumi.NewsYKieruKun"
+TEAM_ID = "P75Y8BDKAN"
+APP_VERSION = "1.1.2"
+BUILD_NUMBER = "20"
+PROJECT_NAME = "YahooNewsCommentHider.xcodeproj"
+IOS_SCHEME = "YahooNewsCommentHider (iOS)"
+MAC_SCHEME = "YahooNewsCommentHider (macOS)"
+
+RELEASE_NOTES = {
+  "ja" => "Safari拡張の安定性を改善しました。ページ移動後の非表示処理とキーワード一致処理を安定化し、パフォーマンスとメモリ使用量を改善しました。軽微な不具合を修正しました。",
+  "en-US" => "Improved Safari extension stability, keyword matching, page navigation handling, performance, and memory usage."
+}
+
+def root_path
+  File.expand_path("..", __dir__)
+end
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: ENV.fetch("ASC_KEY_FILEPATH"),
+    duration: 1200,
+    in_house: false
+  )
+end
+
+def xcodebuild_auth_args
+  [
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath #{ENV.fetch('ASC_KEY_FILEPATH').shellescape}",
+    "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID').shellescape}",
+    "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID').shellescape}"
+  ].join(" ")
+end
+
+def write_export_options(path)
+  File.write(path, <<~PLIST)
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>manageAppVersionAndBuildNumber</key>
+      <false/>
+      <key>method</key>
+      <string>app-store-connect</string>
+      <key>signingStyle</key>
+      <string>automatic</string>
+      <key>stripSwiftSymbols</key>
+      <true/>
+      <key>teamID</key>
+      <string>#{TEAM_ID}</string>
+      <key>uploadSymbols</key>
+      <true/>
+    </dict>
+    </plist>
+  PLIST
+end
+
+def submission_information
+  {
+    add_id_info_uses_idfa: false,
+    export_compliance_uses_encryption: false,
+    content_rights_contains_third_party_content: false
+  }
+end
+
+def run_project_checks
+  Dir.chdir(root_path) do
+    sh("xcodegen generate")
+    sh("python3 Tools/generate_rules.py --check")
+    sh("python3 Tools/check_versions.py")
+    sh("python3 -m unittest discover -s Tests -p 'test_*.py'")
+    sh("node Tests/keyword_utils.test.js")
+    sh("node Tests/comment_recovery_budget.test.js")
+    sh("node Tests/content_dom.test.js")
+  end
+end
+
+def archive_and_export(scheme:, destination:, sdk: nil, archive_name:, export_dir:, package_extension:)
+  project_path = File.join(root_path, PROJECT_NAME)
+  archive_path = File.expand_path("~/Library/Developer/Xcode/Archives/#{Time.now.strftime('%Y-%m-%d')}/#{archive_name}.xcarchive")
+  export_path = File.join(root_path, export_dir)
+  export_options_path = File.join(export_path, "ExportOptions.plist")
+  FileUtils.rm_rf(export_path)
+  FileUtils.mkdir_p(export_path)
+  write_export_options(export_options_path)
+
+  sdk_arg = sdk ? "-sdk #{sdk.shellescape} " : ""
+  sh(
+    "xcodebuild " \
+    "-project #{project_path.shellescape} " \
+    "-scheme #{scheme.shellescape} " \
+    "-configuration Release " \
+    "#{sdk_arg}" \
+    "-destination #{destination.shellescape} " \
+    "-archivePath #{archive_path.shellescape} " \
+    "#{xcodebuild_auth_args} " \
+    "clean archive"
+  )
+  sh(
+    "xcodebuild " \
+    "-exportArchive " \
+    "-archivePath #{archive_path.shellescape} " \
+    "-exportPath #{export_path.shellescape} " \
+    "-exportOptionsPlist #{export_options_path.shellescape} " \
+    "#{xcodebuild_auth_args}"
+  )
+
+  package_path = Dir[File.join(export_path, "*.#{package_extension}")].first
+  UI.user_error!("Expected .#{package_extension} export was not found in #{export_path}") unless package_path
+  package_path
+end
+
+platform :ios do
+  desc "Validate, build, upload, and submit iOS/iPadOS 1.1.2 for App Review"
+  lane :submit_ios do
+    api_key = asc_api_key
+    run_project_checks
+    ipa_path = archive_and_export(
+      scheme: IOS_SCHEME,
+      destination: "generic/platform=iOS",
+      archive_name: "YNewsKieruKun-iOS-#{APP_VERSION}-#{BUILD_NUMBER}",
+      export_dir: "build/fastlane/ios-export-#{APP_VERSION}",
+      package_extension: "ipa"
+    )
+
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: APP_IDENTIFIER,
+      app_version: APP_VERSION,
+      platform: "ios",
+      ipa: ipa_path,
+      skip_metadata: false,
+      skip_screenshots: true,
+      release_notes: RELEASE_NOTES,
+      force: true,
+      submit_for_review: true,
+      reject_if_possible: true,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: submission_information
+    )
+  end
+
+  desc "Validate, build, upload, and submit macOS 1.1.2 for App Review"
+  lane :submit_macos do
+    api_key = asc_api_key
+    run_project_checks
+    pkg_path = archive_and_export(
+      scheme: MAC_SCHEME,
+      sdk: "macosx",
+      destination: "generic/platform=macOS",
+      archive_name: "YNewsKieruKun-macOS-#{APP_VERSION}-#{BUILD_NUMBER}",
+      export_dir: "build/fastlane/macos-export-#{APP_VERSION}",
+      package_extension: "pkg"
+    )
+
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: APP_IDENTIFIER,
+      app_version: APP_VERSION,
+      platform: "osx",
+      pkg: pkg_path,
+      skip_metadata: false,
+      skip_screenshots: true,
+      release_notes: RELEASE_NOTES,
+      force: true,
+      submit_for_review: true,
+      reject_if_possible: true,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: submission_information
+    )
+  end
+
+  desc "Submit iOS/iPadOS and macOS 1.1.2 for App Review"
+  lane :submit_all do
+    submit_ios
+    submit_macos
+  end
+end

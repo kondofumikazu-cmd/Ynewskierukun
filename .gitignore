@@ -19,6 +19,8 @@ Generated/
 # Release and store artifacts
 Screenshots/
 metadata/
+fastlane/README.md
+fastlane/report.xml
 *.xcarchive
 *.dSYM
 *.app
